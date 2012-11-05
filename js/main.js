@@ -17,13 +17,19 @@ app.AttendeeModel = Backbone.Model.extend({
 // Collection
 //
 
-var Attendees = Backbone.Collection.extend({
-	model: app.AttendeeModel
+app.AttendeeCollection = Backbone.Collection.extend({
+	url: '',
+	model: app.AttendeeModel,
+
+	present: function () {
+		return this.filter(function (attendee) { return attendee.get('present'); });
+	}
 });
 
-app.AttendeeCollection = new Attendees([
+app.AttendeeCollection = new app.AttendeeCollection([
 	{ firstname: 'Guillaume', lastname: 'Grégoire' },
-	{ firstname: 'Tim', lastname: 'Stubbs' }
+	{ firstname: 'Tim', lastname: 'Stubbs' },
+	{ firstname: 'Nicolas', lastname: 'Faugout' }
 ]);
 
 //
@@ -33,12 +39,12 @@ app.AttendeeCollection = new Attendees([
 app.ItemView = Backbone.View.extend({
 	tagName: 'li',
 
-	template: _.template('<span class="name <%= present ? "present" : "absent" %>"><%= firstname %> <%= lastname %></span> <span class="delete">[x]</span>'),
+	template: _.template('<input class="toggle" type="checkbox" <%= present ? "checked" : "" %>> <span class="name"><%= firstname %> <%= lastname %></span> <button class="destroy"></button>'),
 
 	events: {
 		'dblclick .name': 'editItem',
-		'click .delete': 'destroyItem',
-		'click .name': 'toggleItem'
+		'click .destroy': 'destroyItem',
+		'click .toggle': 'toggleItem'
 	},
 
 	initialize: function () {
@@ -103,6 +109,22 @@ app.InputView = Backbone.View.extend({
 	}
 });
 
+app.FooterView = Backbone.View.extend({
+	el: $('#footer'),
+
+	template: _.template('<span id="attendee-count"><strong><%= present %></strong> / <strong><%= total %></strong> participants présents</span>'),
+
+	initialize: function () {
+		app.AttendeeCollection.on('all', this.render, this);
+		this.render();
+	},
+
+	render: function () {
+		var present = app.AttendeeCollection.present().length;
+		return this.$el.html(this.template({ present: present, total: app.AttendeeCollection.length }));
+	}
+});
+
 //
 // Init views
 //
@@ -110,6 +132,7 @@ app.InputView = Backbone.View.extend({
 $(function () {
 	new app.ListView;
 	new app.InputView;
+	new app.FooterView;
 });
 
 
