@@ -22,7 +22,7 @@ app.AttendeeCollection = Backbone.Collection.extend({
 	model: app.AttendeeModel,
 
 	present: function () {
-		return this.filter(function (attendee) { return attendee.get('present'); });
+		return this.where({ present: true });
 	}
 });
 
@@ -120,8 +120,7 @@ app.FooterView = Backbone.View.extend({
 	},
 
 	render: function () {
-		var present = app.AttendeeCollection.present().length;
-		return this.$el.html(this.template({ present: present, total: app.AttendeeCollection.length }));
+		return this.$el.html(this.template({ present: app.AttendeeCollection.present().length, total: app.AttendeeCollection.length }));
 	}
 });
 
